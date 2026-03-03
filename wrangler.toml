@@ -1,7 +1,7 @@
 main = "./dist/worker.mjs"
 compatibility_date = "2025-03-10"
 workers_dev = false # Enable it for development purposes, and if you are want a domain ending with .workers.dev
-account_id = "your-account-id-here" # Log in dash.cloudflare.com, select an account, go to Workers, and copy Account ID
+account_id = "022362f27de5264a50ce60cb23293c9f" # Log in dash.cloudflare.com, select an account, go to Workers, and copy Account ID
 
 [build]
 command = "npm install && npm run build"
