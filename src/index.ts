@@ -23,8 +23,14 @@ import {
 	handleError,
 	HTTPError,
 } from './errors';
-import { IssuerConfigurationResponse, TokenType } from './types';
+import {
+	IssuerConfigurationResponse,
+	TokenType,
+	ACTVerifySpendOptions,
+	ACTVerifySpendResult,
+} from './types';
 import { b64ToB64URL, b64Tou8, b64URLtoB64, u8ToB64 } from './utils/base64';
+import { handleACTTokenRequest, rotateACTKey, getACTTokenKeys, verifyACTSpendProof } from './act';
 import {
 	MediaType,
 	PRIVATE_TOKEN_ISSUER_DIRECTORY,
@@ -145,8 +151,20 @@ export const handleSingleTokenRequest = async (
 	buffer: ArrayBuffer,
 	domain: string
 ): Promise<IssueResponse> => {
-	// Deserialize and process the token request.
-	const tokenRequest = TokenRequest.deserialize(TOKEN_TYPES.BLIND_RSA, new Uint8Array(buffer));
+	const bytes = new Uint8Array(buffer);
+
+	// Check token type from first 2 bytes
+	const tokenType = new DataView(buffer).getUint16(0);
+
+	// Handle ACT token requests
+	if (tokenType === TokenType.ACT) {
+		// Default credits for ACT issuance - can be overridden via configuration
+		const credits = BigInt(100); // TODO: make configurable
+		return await handleACTTokenRequest(ctx, buffer, domain, credits);
+	}
+
+	// Handle Blind RSA token requests
+	const tokenRequest = TokenRequest.deserialize(TOKEN_TYPES.BLIND_RSA, bytes);
 	if (tokenRequest.tokenType !== TOKEN_TYPES.BLIND_RSA.value) {
 		throw new InvalidTokenTypeError();
 	}
@@ -340,16 +358,22 @@ export const handleTokenDirectory = async (ctx: Context, request: Request) => {
 		.sort((a, b) => new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime())
 		.slice(0, freshestKeyCount);
 
+	// Get ACT token keys if configured
+	const actTokenKeys = await getACTTokenKeys(ctx);
+
 	const directory: IssuerConfigurationResponse = {
 		'issuer-request-uri': '/token-request',
-		'token-keys': keys.map(key => ({
-			'token-type': TokenType.BlindRSA,
-			'token-key': (key.customMetadata as StorageMetadata).publicKey,
-			'not-before': Number.parseInt(
-				(key.customMetadata as StorageMetadata).notBefore ??
-					(new Date(key.uploaded).getTime() / 1000).toFixed(0)
-			),
-		})),
+		'token-keys': [
+			...keys.map(key => ({
+				'token-type': TokenType.BlindRSA,
+				'token-key': (key.customMetadata as StorageMetadata).publicKey,
+				'not-before': Number.parseInt(
+					(key.customMetadata as StorageMetadata).notBefore ??
+						(new Date(key.uploaded).getTime() / 1000).toFixed(0)
+				),
+			})),
+			...actTokenKeys,
+		],
 	};
 
 	const body = JSON.stringify(directory);
@@ -439,6 +463,12 @@ export const handleRotateKey = async (ctx: Context, _request: Request) => {
 	return new Response(`New key ${b64ToB64URL(u8ToB64(await rotateKey(ctx)))}`, { status: 201 });
 };
 
+export const handleRotateACTKey = async (ctx: Context, _request: Request) => {
+	return new Response(`New ACT key ${b64ToB64URL(u8ToB64(await rotateACTKey(ctx)))}`, {
+		status: 201,
+	});
+};
+
 const clearKey = async (ctx: Context): Promise<string[]> => {
 	ctx.metrics.keyClearTotal.inc();
 
@@ -522,6 +552,7 @@ export class IssuerHandler extends WorkerEntrypoint<Bindings> {
 			.get(PRIVATE_TOKEN_ISSUER_DIRECTORY, handleTokenDirectory)
 			.post('/token-request', handleTokenRequest)
 			.post('/admin/rotate', handleRotateKey)
+			.post('/admin/rotate-act', handleRotateACTKey)
 			.post('/admin/clear', handleClearKey);
 
 		return router.handle(
@@ -551,8 +582,16 @@ export class IssuerHandler extends WorkerEntrypoint<Bindings> {
 		return this.withMetrics({ op: 'clearKey', ...opts }, ctx => clearKey(ctx));
 	}
 
+	async actVerifySpend(opts: ACTVerifySpendOptions): Promise<ACTVerifySpendResult> {
+		return this.withMetrics({ op: 'actVerifySpend', ...opts }, ctx =>
+			verifyACTSpendProof(ctx, opts.keyID, opts.proofBytes, opts.returnCredits)
+		);
+	}
+
 	private async withMetrics<T>(
-		opts: BaseRpcOptions & { op: 'tokenDirectory' | 'issue' | 'rotateKey' | 'clearKey' },
+		opts: BaseRpcOptions & {
+			op: 'tokenDirectory' | 'issue' | 'rotateKey' | 'clearKey' | 'actVerifySpend';
+		},
 		fn: (ctx: Context) => Promise<T>
 	): Promise<T> {
 		const { prefix, serviceInfo, op } = opts;

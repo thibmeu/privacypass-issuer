@@ -41,3 +41,14 @@ export interface IssueOptions extends BaseRpcOptions {
 	tokenRequest: ArrayBuffer;
 	contentType: string;
 }
+
+export interface ACTVerifySpendOptions extends BaseRpcOptions {
+	keyID: number;
+	proofBytes: Uint8Array;
+	returnCredits: bigint;
+}
+
+export interface ACTVerifySpendResult {
+	valid: boolean;
+	refund?: Uint8Array;
+}

@@ -35,6 +35,7 @@ export class Router {
 			case '/.well-known/token-issuer-directory':
 			case '/token-request':
 			case '/admin/rotate':
+			case '/admin/rotate-act':
 			case '/admin/clear':
 			case '/':
 				return normalised;

@@ -7,8 +7,8 @@ account_id = "your-account-id-here" # Log in dash.cloudflare.com, select an acco
 command = "npm install && npm run build"
 
 [env.production]
-name = "pp-issuer-production"
-route = { pattern = "pp-issuer.example.test", custom_domain=true }
+name = "act-issuer-production"
+route = { pattern = "act-issuer.research.cloudflare.com", custom_domain = true }
 
 [env.production.triggers]
 crons = ["0 0 * * *"]
@@ -21,12 +21,20 @@ KEY_NOT_BEFORE_DELAY_IN_MS = "7200000" # 2h
 MINIMUM_FRESHEST_KEYS = "1"
 ROTATION_CRON_STRING = "30 12 * * *"
 SENTRY_SAMPLE_RATE = "0" # Between 0-1 if you log errors on Sentry. 0 disables Sentry logging. Configuration is done through Workers Secrets
-SERVICE = "pp-issuer-production"
+SERVICE = "act-issuer-production"
+# ACT configuration
+ACT_DOMAIN_SEPARATOR = "act-issuer.research.cloudflare.com"
+ACT_L = "8" # Supports balances 0-255
 
 [[env.production.r2_buckets]]
-bucket_name = 'pp-issuer-keys-production' # wrangler r2 bucket create pp-issuer-keys-production. Pricing and free tier described on https://developers.cloudflare.com/r2/pricing
-preview_bucket_name = 'pp-issuer-keys-production-local'
+bucket_name = 'act-issuer-keys-production' # wrangler r2 bucket create act-issuer-keys-production
+preview_bucket_name = 'act-issuer-keys-production-local'
 binding = 'ISSUANCE_KEYS'
+
+[[env.production.r2_buckets]]
+bucket_name = 'act-issuer-act-keys-production' # wrangler r2 bucket create act-issuer-act-keys-production
+preview_bucket_name = 'act-issuer-act-keys-production-local'
+binding = 'ACT_ISSUANCE_KEYS'
 
 [env.production.version_metadata]
 binding = "VERSION_METADATA"
