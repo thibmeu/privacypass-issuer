@@ -112,7 +112,7 @@ export const issue = async (
 		case MediaType.PRIVATE_TOKEN_REQUEST: {
 			return await handleSingleTokenRequest(ctx, buffer, domain);
 		}
-		case MediaType.ARBITRARY_BATCHED_TOKEN_REQUEST: {
+		case MediaType.GENERIC_BATCHED_TOKEN_REQUEST: {
 			return await handleBatchedTokenRequest(ctx, buffer, domain);
 		}
 		default:
@@ -178,7 +178,7 @@ export const handleBatchedTokenRequest = async (
 		return {
 			serialized: responseBytes,
 			status: 200,
-			responseContentType: MediaType.ARBITRARY_BATCHED_TOKEN_RESPONSE,
+			responseContentType: MediaType.GENERIC_BATCHED_TOKEN_RESPONSE,
 			// notBefore may not be relevant if there are no tokens but could be set to a default value if needed.
 		};
 	}
@@ -216,7 +216,7 @@ export const handleBatchedTokenRequest = async (
 	return {
 		serialized: responseBytes,
 		status,
-		responseContentType: MediaType.ARBITRARY_BATCHED_TOKEN_RESPONSE,
+		responseContentType: MediaType.GENERIC_BATCHED_TOKEN_RESPONSE,
 		notBefore,
 	};
 };
