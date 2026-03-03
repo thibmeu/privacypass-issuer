@@ -60,7 +60,7 @@
 		"wrangler": "4.59.3"
 	},
 	"dependencies": {
-		"@cloudflare/privacypass-ts": "0.8.1",
+		"@cloudflare/privacypass-ts": "file:../act-ts/packages/privacypass-ts",
 		"@sentry/cli": "2.26.0",
 		"@sentry/types": "7.95.0",
 		"@tsndr/cloudflare-worker-jwt": "3.2.1",
