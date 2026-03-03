@@ -16,6 +16,11 @@ export interface Bindings {
 
 	// R2 buckets
 	ISSUANCE_KEYS: R2Bucket;
+	ACT_ISSUANCE_KEYS: R2Bucket | null;
+
+	// ACT configuration
+	ACT_DOMAIN_SEPARATOR: string | null;
+	ACT_L: string | null;
 
 	// Performance Timer
 	PERFORMANCE: Performance | null;
@@ -84,6 +89,9 @@ export function checkMandatoryBindings(env: UncheckedBindings): Bindings {
 		SENTRY_DSN: env.SENTRY_DSN ?? null,
 		SENTRY_SAMPLE_RATE: env.SENTRY_SAMPLE_RATE ?? null,
 		ISSUANCE_KEYS: env.ISSUANCE_KEYS,
+		ACT_ISSUANCE_KEYS: env.ACT_ISSUANCE_KEYS ?? null,
+		ACT_DOMAIN_SEPARATOR: env.ACT_DOMAIN_SEPARATOR ?? null,
+		ACT_L: env.ACT_L ?? null,
 		PERFORMANCE: env.PERFORMANCE ?? null,
 		VERSION_METADATA: env.VERSION_METADATA,
 		ROTATION_CRON_STRING: env.ROTATION_CRON_STRING ?? null,

@@ -17,11 +17,13 @@ export type IssuerTokenKey = {
 
 // https://www.ietf.org/archive/id/draft-ietf-privacypass-protocol-10.html#name-token-type-registry-updates-2
 // https://www.ietf.org/archive/id/draft-ietf-privacypass-rate-limit-tokens-02.html#name-iana-considerations
+// https://www.ietf.org/archive/id/draft-schlesinger-privacypass-act-01.html
 export enum TokenType {
 	VOPRF = 0x0001,
 	BlindRSA = 0x0002,
 	RateLimitBlindRSAECDSA = 0x0003,
 	RateLimitBlindRSAEd25519 = 0x0004,
+	ACT = 0xe5ad,
 }
 
 export interface ServiceInfo {
