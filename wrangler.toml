@@ -63,6 +63,7 @@ SENTRY_SAMPLE_RATE = "0"
 SERVICE = "act-issuer"
 ACT_DOMAIN_SEPARATOR = "cloudflare:act-issuer:research:v1"
 ACT_L = "8"
+ACT_ORIGIN_URL = "https://act-origin.research.cloudflare.com"
 
 [[env.act.r2_buckets]]
 bucket_name = 'act-issuer-keys-production'

@@ -471,7 +471,7 @@ export const handleRotateACTKey = async (ctx: Context, _request: Request) => {
 
 export const handleACTVerifySpend = async (ctx: Context, request: Request) => {
 	try {
-		const body = await request.json() as {
+		const body = (await request.json()) as {
 			keyID: number;
 			proofBytes: number[];
 			returnCredits: string;
@@ -567,6 +567,22 @@ export const handleClearKey = async (ctx: Context, _request: Request) => {
 	}
 };
 
+/**
+ * Redirect issuer homepage to origin for centralized documentation
+ */
+export const handleHomepageRedirect = async (ctx: Context, _request: Request) => {
+	// Redirect to ACT origin homepage if ACT_ORIGIN_URL is configured
+	const originUrl = ctx.env.ACT_ORIGIN_URL;
+	if (originUrl) {
+		return Response.redirect(originUrl, 302);
+	}
+	// Fallback: return basic info
+	return new Response('Privacy Pass Issuer. See /.well-known/private-token-issuer-directory', {
+		status: 200,
+		headers: { 'Content-Type': 'text/plain' },
+	});
+};
+
 export class IssuerHandler extends WorkerEntrypoint<Bindings> {
 	private context(url: string, prefix?: string): Context {
 		const env = this.env;
@@ -580,6 +596,7 @@ export class IssuerHandler extends WorkerEntrypoint<Bindings> {
 		const router = new Router();
 
 		router
+			.get('/', handleHomepageRedirect)
 			.get(PRIVATE_TOKEN_ISSUER_DIRECTORY, handleTokenDirectory)
 			.post('/token-request', handleTokenRequest)
 			.post('/act-verify-spend', handleACTVerifySpend)

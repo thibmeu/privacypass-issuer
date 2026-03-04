@@ -34,9 +34,11 @@ export class Router {
 			case PRIVATE_TOKEN_ISSUER_DIRECTORY:
 			case '/.well-known/token-issuer-directory':
 			case '/token-request':
+			case '/act-verify-spend':
 			case '/admin/rotate':
 			case '/admin/rotate-act':
 			case '/admin/clear':
+			case '':
 			case '/':
 				return normalised;
 			default:
