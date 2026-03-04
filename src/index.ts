@@ -469,6 +469,37 @@ export const handleRotateACTKey = async (ctx: Context, _request: Request) => {
 	});
 };
 
+export const handleACTVerifySpend = async (ctx: Context, request: Request) => {
+	try {
+		const body = await request.json() as {
+			keyID: number;
+			proofBytes: number[];
+			returnCredits: string;
+		};
+
+		const proofBytes = new Uint8Array(body.proofBytes);
+		const returnCredits = BigInt(body.returnCredits);
+
+		const result = await verifyACTSpendProof(ctx, body.keyID, proofBytes, returnCredits);
+
+		return new Response(
+			JSON.stringify({
+				valid: result.valid,
+				refund: result.refund ? Array.from(result.refund) : undefined,
+			}),
+			{
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			}
+		);
+	} catch (err) {
+		return new Response(JSON.stringify({ valid: false, error: String(err) }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+};
+
 const clearKey = async (ctx: Context): Promise<string[]> => {
 	ctx.metrics.keyClearTotal.inc();
 
@@ -551,6 +582,7 @@ export class IssuerHandler extends WorkerEntrypoint<Bindings> {
 		router
 			.get(PRIVATE_TOKEN_ISSUER_DIRECTORY, handleTokenDirectory)
 			.post('/token-request', handleTokenRequest)
+			.post('/act-verify-spend', handleACTVerifySpend)
 			.post('/admin/rotate', handleRotateKey)
 			.post('/admin/rotate-act', handleRotateACTKey)
 			.post('/admin/clear', handleClearKey);

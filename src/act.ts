@@ -50,6 +50,7 @@ const actKeyToTokenKeyID = async (publicKeyBytes: Uint8Array): Promise<number> =
 };
 
 // Get ACT system parameters from environment
+// Domain separator follows spec format: ACT-v1:organization:service:deployment:version
 const getACTParams = (ctx: Context): { domainSeparator: Uint8Array; L: number } => {
 	const domainSeparator = ctx.env.ACT_DOMAIN_SEPARATOR;
 	const L = ctx.env.ACT_L;
@@ -61,8 +62,13 @@ const getACTParams = (ctx: Context): { domainSeparator: Uint8Array; L: number } 
 		throw new Error('ACT_L not configured');
 	}
 
+	// Format: "org:service:deployment:version" -> "ACT-v1:org:service:deployment:version"
+	const structuredSeparator = domainSeparator.startsWith('ACT-v1:')
+		? domainSeparator
+		: `ACT-v1:${domainSeparator}`;
+
 	return {
-		domainSeparator: new TextEncoder().encode(domainSeparator),
+		domainSeparator: new TextEncoder().encode(structuredSeparator),
 		L: parseInt(L, 10),
 	};
 };
