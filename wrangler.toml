@@ -22,8 +22,8 @@ MINIMUM_FRESHEST_KEYS = "1"
 ROTATION_CRON_STRING = "30 12 * * *"
 SENTRY_SAMPLE_RATE = "0" # Between 0-1 if you log errors on Sentry. 0 disables Sentry logging. Configuration is done through Workers Secrets
 SERVICE = "act-issuer-production"
-# ACT configuration
-ACT_DOMAIN_SEPARATOR = "act-issuer.research.cloudflare.com"
+# ACT configuration - format: "organization:service:deployment:version"
+ACT_DOMAIN_SEPARATOR = "cloudflare:act-issuer:research:v1"
 ACT_L = "8" # Supports balances 0-255
 
 [[env.production.r2_buckets]]
@@ -44,6 +44,37 @@ name = "key-backup-workflow"
 binding = "KEY_BACKUP_WF"
 class_name = "KeyBackupWorkflow"
 
+# ACT environment (for service binding from origin)
+[env.act]
+name = "act-issuer"
+route = { pattern = "act-issuer.research.cloudflare.com", custom_domain = true }
+
+[env.act.triggers]
+crons = ["0 0 * * *"]
+
+[env.act.vars]
+DIRECTORY_CACHE_MAX_AGE_SECONDS = "86400"
+ENVIRONMENT = "act"
+KEY_LIFESPAN_IN_MS = "172800000"
+KEY_NOT_BEFORE_DELAY_IN_MS = "7200000"
+MINIMUM_FRESHEST_KEYS = "1"
+ROTATION_CRON_STRING = "30 12 * * *"
+SENTRY_SAMPLE_RATE = "0"
+SERVICE = "act-issuer"
+ACT_DOMAIN_SEPARATOR = "cloudflare:act-issuer:research:v1"
+ACT_L = "8"
+
+[[env.act.r2_buckets]]
+bucket_name = 'act-issuer-keys-production'
+binding = 'ISSUANCE_KEYS'
+
+[[env.act.r2_buckets]]
+bucket_name = 'act-issuer-act-keys-production'
+binding = 'ACT_ISSUANCE_KEYS'
+
+[env.act.version_metadata]
+binding = "VERSION_METADATA"
+
 # Local development
 [env.dev]
 name = "act-issuer-dev"
@@ -57,7 +88,7 @@ MINIMUM_FRESHEST_KEYS = "1"
 ROTATION_CRON_STRING = "30 12 * * *"
 SENTRY_SAMPLE_RATE = "0"
 SERVICE = "act-issuer-dev"
-ACT_DOMAIN_SEPARATOR = "act-issuer.research.cloudflare.com"
+ACT_DOMAIN_SEPARATOR = "cloudflare:act-issuer:dev:v1"
 ACT_L = "8"
 
 [[env.dev.r2_buckets]]
