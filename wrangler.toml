@@ -49,6 +49,9 @@ class_name = "KeyBackupWorkflow"
 name = "act-issuer"
 route = { pattern = "act-issuer.research.cloudflare.com", custom_domain = true }
 
+[env.act.observability]
+enabled = true
+
 [env.act.triggers]
 crons = ["0 0 * * *"]
 
